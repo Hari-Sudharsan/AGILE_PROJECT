@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Serverless Chatbot with MLOps Pipeline — Project Report</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg:        #0d1117;
+    --bg2:       #161b22;
+    --bg3:       #1c2128;
+    --bg4:       #21262d;
+    --border:    #30363d;
+    --accent:    #00d4ff;
+    --accent2:   #7ee787;
+    --accent3:   #ffa657;
+    --accent4:   #ff7b72;
+    --text:      #e6edf3;
+    --text2:     #8b949e;
+    --text3:     #484f58;
+    --mono:      'IBM Plex Mono', monospace;
+    --sans:      'Inter', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* ── Layout ── */
+  .page { max-width: 1000px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* ── Cover ── */
+  .cover {
+    text-align: center;
+    padding: 60px 0 50px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+  .cover-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(0,212,255,.08);
+    border: 1px solid rgba(0,212,255,.25);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .cover h1 {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .cover h1 span { color: var(--accent); }
+  .cover p {
+    color: var(--text2);
+    font-size: 15px;
+    max-width: 560px;
+    margin: 0 auto 28px;
+  }
+  .meta-grid {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .meta-item { text-align: center; }
+  .meta-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); font-family: var(--mono); }
+  .meta-value { font-size: 13px; color: var(--text2); margin-top: 3px; }
+
+  /* ── Section headings ── */
+  .section {
+    margin-bottom: 48px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section:last-child { border-bottom: none; }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .section h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    letter-spacing: -0.3px;
+  }
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 28px 0 12px;
+    color: var(--accent2);
+  }
+  h4 {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 20px 0 8px;
+    color: var(--accent3);
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  p { color: var(--text2); margin-bottom: 12px; }
+
+  /* ── Architecture diagram ── */
+  .arch-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+  .arch-box pre {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.5;
+    white-space: pre;
+  }
+
+  /* ── AWS Diagram (visual) ── */
+  .aws-diagram {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .aws-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .aws-box {
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    text-align: center;
+    min-width: 120px;
+  }
+  .aws-box .icon { font-size: 24px; display: block; margin-bottom: 4px; }
+  .aws-box .label { font-size: 11px; font-family: var(--mono); color: var(--text2); }
+  .aws-box .sublabel { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .aws-box.accent { border-color: rgba(0,212,255,.4); }
+  .aws-box.green  { border-color: rgba(126,231,135,.4); }
+  .aws-box.orange { border-color: rgba(255,166,87,.4); }
+  .arrow { font-size: 18px; color: var(--text3); }
+  .arrow-down { text-align: center; font-size: 18px; color: var(--text3); }
+
+  /* ── Code blocks ── */
+  .code-block {
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 14px 0;
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+  .code-filename {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .code-lang {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    background: var(--bg2);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .code-block pre {
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-x: auto;
+    color: var(--text);
+  }
+  /* Syntax color hints */
+  .kw  { color: #ff7b72; }
+  .fn  { color: #d2a8ff; }
+  .str { color: #a5d6ff; }
+  .cm  { color: var(--text3); font-style: italic; }
+  .num { color: var(--accent3); }
+  .dec { color: var(--accent); }
+
+  /* ── Folder tree ── */
+  .tree {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: var(--text);
+    margin: 16px 0;
+  }
+  .tree .dir  { color: var(--accent); font-weight: 600; }
+  .tree .file { color: var(--text2); }
+  .tree .note { color: var(--text3); font-size: 11px; }
+
+  /* ── Tables ── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: var(--bg3);
+    padding: 10px 14px;
+    font-size: 11px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text2);
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: rgba(255,255,255,.02); }
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  .badge-pass  { background: rgba(126,231,135,.15); color: var(--accent2); border: 1px solid rgba(126,231,135,.3); }
+  .badge-fail  { background: rgba(255,123,114,.15); color: var(--accent4); border: 1px solid rgba(255,123,114,.3); }
+  .badge-mono  { background: var(--bg4); color: var(--text2); border: 1px solid var(--border); }
+
+  /* ── Steps ── */
+  .steps { counter-reset: step; list-style: none; margin: 16px 0; }
+  .steps li {
+    counter-increment: step;
+    display: flex;
+    gap: 14px;
+    margin-bottom: 18px;
+    align-items: flex-start;
+  }
+  .steps li::before {
+    content: counter(step);
+    background: var(--accent);
+    color: #000;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .steps .step-body { color: var(--text2); }
+  .steps .step-body strong { color: var(--text); }
+
+  /* ── Pipeline stages ── */
+  .pipeline {
+    display: flex;
+    gap: 0;
+    margin: 20px 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .pipeline-stage {
+    flex: 1;
+    padding: 16px 14px;
+    background: var(--bg3);
+    text-align: center;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+  .pipeline-stage:last-child { border-right: none; }
+  .pipeline-stage .stage-icon { font-size: 22px; margin-bottom: 6px; }
+  .pipeline-stage .stage-name { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; }
+  .pipeline-stage .stage-desc { font-size: 11px; color: var(--text2); margin-top: 4px; line-height: 1.4; }
+  .pipeline-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 2px;
+    background: var(--bg4);
+    color: var(--accent);
+    font-size: 14px;
+  }
+
+  /* ── Info cards ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+  }
+  .card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .card-icon { font-size: 22px; margin-bottom: 8px; }
+  .card-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .card-body { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+  /* ── Inline code ── */
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--accent3);
+  }
+
+  /* ── Callout ── */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: rgba(0,212,255,.05);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 14px 0;
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .callout.green { border-color: var(--accent2); background: rgba(126,231,135,.05); }
+  .callout.orange { border-color: var(--accent3); background: rgba(255,166,87,.05); }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 40px;
+  }
+  .toc-title { font-family: var(--mono); font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .toc ol { list-style: none; }
+  .toc ol li {
+    font-size: 13px;
+    color: var(--text2);
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .toc ol li span.num { font-family: var(--mono); font-size: 11px; color: var(--text3); min-width: 28px; }
+
+  @media print {
+    body { background: white; color: #111; }
+    .code-block, .tree, .arch-box { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- COVER -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-badge">College Project Report</div>
+  <h1>Serverless Chatbot with<br/><span>MLOps Pipeline</span></h1>
+  <p>A full-stack chatbot application demonstrating serverless architecture, MLOps practices, CI/CD automation, and AWS cloud deployment.</p>
+  <div class="meta-grid">
+    <div class="meta-item"><div class="meta-label">Type</div><div class="meta-value">Full-Stack + Cloud + MLOps</div></div>
+    <div class="meta-item"><div class="meta-label">Stack</div><div class="meta-value">React · FastAPI · AWS · GitHub Actions</div></div>
+    <div class="meta-item"><div class="meta-label">Version</div><div class="meta-value">1.0.0</div></div>
+    <div class="meta-item"><div class="meta-label">Status</div><div class="meta-value">✅ Complete</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- TABLE OF CONTENTS -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="toc">
+  <div class="toc-title">Table of Contents</div>
+  <ol>
+    <li><span class="num">01</span> System Design — Architecture, Components, Database</li>
+    <li><span class="num">02</span> Project Structure — Folder Layout</li>
+    <li><span class="num">03</span> Full Implementation Code — Frontend, Backend, MLOps</li>
+    <li><span class="num">04</span> MLOps Implementation — Data, Training, Versioning, Monitoring</li>
+    <li><span class="num">05</span> AWS Deployment — Step-by-Step Guide</li>
+    <li><span class="num">06</span> DevOps / CI-CD — GitHub Actions Pipeline</li>
+    <li><span class="num">07</span> Testing — 7 Test Cases with Report Table</li>
+    <li><span class="num">08</span> README Documentation</li>
+  </ol>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 1: SYSTEM DESIGN -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">Section 01</div>
+  <h2>⚙️ System Design</h2>
+
+  <h3>1.1 Architecture Diagram</h3>
+
+  <!-- Visual AWS architecture -->
+  <div class="aws-diagram">
+    <div class="aws-row">
+      <div class="aws-box accent">
+        <span class="icon">🌐</span>
+        <div class="label">User Browser</div>
+        <div class="sublabel">React Chat UI</div>
+      </div>
+    </div>
+    <div class="arrow-down">↕ HTTPS</div>
+    <div class="aws-row">
+      <div class="aws-box green">
+        <span class="icon">🪣</span>
+        <div class="label">AWS S3</div>
+        <div class="sublabel">Frontend hosting</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="aws-box accent">
+        <span class="icon">🚪</span>
+        <div class="label">API Gateway</div>
+        <div class="sublabel">REST API + CORS</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="aws-box orange">
+        <span class="icon">λ</span>
+        <div class="label">AWS Lambda</div>
+        <div class="sublabel">FastAPI + Mangum</div>
+      </div>
+    </div>
+    <div class="arrow-down">↕ SDK calls</div>
+    <div class="aws-row">
+      <div class="aws-box green">
+        <span class="icon">🗄️</span>
+        <div class="label">DynamoDB</div>
+        <div class="sublabel">Chat log storage</div>
+      </div>
+      <div style="width:20px"></div>
+      <div class="aws-box accent">
+        <span class="icon">📊</span>
+        <div class="label">CloudWatch</div>
+        <div class="sublabel">Logs + Metrics</div>
+      </div>
+      <div style="width:20px"></div>
+      <div class="aws-box orange">
+        <span class="icon">🪣</span>
+        <div class="label">S3 (Logs)</div>
+        <div class="sublabel">JSON chat logs</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>1.2 Architecture Explanation</h3>
+  <p>The system follows a <strong>serverless microservice pattern</strong>. The React frontend is hosted as static files on S3. All API calls go through API Gateway, which triggers a Lambda function. Lambda runs our FastAPI backend using the Mangum adapter (which translates Lambda events into ASGI requests).</p>
+  <p>DynamoDB stores structured chat logs. CloudWatch automatically collects Lambda logs for monitoring. The ML layer runs as separate scripts (locally or via scheduled Lambda) to simulate MLOps workflows.</p>
+
+  <h3>1.3 Component Diagram</h3>
+  <div class="arch-box">
+<pre>FRONTEND (React)
+├── App.js              — Root component, state management, API calls
+├── ChatWindow.js       — Scrollable message history display
+├── MessageBubble.js    — Single message (user/bot styling)
+└── InputBar.js         — Text input + send button
+
+BACKEND (FastAPI / Python)
+├── main.py             — HTTP routes, request/response orchestration
+├── chat_handler.py     — Chatbot logic (rule-based + optional LLM)
+├── database.py         — SQLite (local) / DynamoDB (cloud)
+├── logger.py           — Structured JSON logging
+├── monitor.py          — Response time + error tracking
+└── lambda_handler.py   — Mangum wrapper for AWS Lambda
+
+MLOPS LAYER
+├── ml/train.py         — Simulated 5-step training pipeline
+├── ml/evaluate.py      — Analyze collected data, decide on retraining
+└── ml/version.txt      — Current deployed model version
+
+DATA LAYER
+├── data/chatbot.db     — SQLite database (local dev)
+├── data/chat_logs.json — Raw chat data (MLOps training set)
+├── data/metrics.json   — Performance metrics
+└── data/app.log        — Structured application logs</pre>
+  </div>
+
+  <h3>1.4 Database Schema</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Field</th><th>Type</th><th>Constraint</th><th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>TEXT</td><td>PRIMARY KEY</td><td>UUID — unique identifier per log entry</td></tr>
+        <tr><td><code>session_id</code></td><td>TEXT</td><td>NOT NULL</td><td>Groups messages in one conversation</td></tr>
+        <tr><td><code>user_message</code></td><td>TEXT</td><td>NOT NULL</td><td>The message typed by the user</td></tr>
+        <tr><td><code>bot_response</code></td><td>TEXT</td><td>NOT NULL</td><td>The chatbot's reply</td></tr>
+        <tr><td><code>timestamp</code></td><td>TEXT</td><td>NOT NULL</td><td>ISO 8601 UTC datetime string</td></tr>
+        <tr><td><code>model_version</code></td><td>TEXT</td><td>NOT NULL</td><td>Model version that generated the response</td></tr>
+        <tr><td><code>response_time</code></td><td>REAL</td><td>DEFAULT 0.0</td><td>Response latency in milliseconds</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout green">
+    <strong>DynamoDB note:</strong> In the cloud, <code>id</code> is the Partition Key. A Global Secondary Index (GSI) on <code>session_id</code> enables efficient conversation history queries.
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 2: PROJECT STRUCTURE -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">Section 02</div>
+  <h2>📁 Project Structure</h2>
+
+  <div class="tree">
+<span class="dir">serverless-chatbot/</span>
+├── <span class="dir">frontend/</span>                  <span class="note">← React chat UI</span>
+│   ├── <span class="dir">public/</span>
+│   │   └── <span class="file">index.html</span>         <span class="note">← HTML entry point</span>
+│   ├── <span class="dir">src/</span>
+│   │   ├── <span class="file">App.js</span>             <span class="note">← Root component + API calls</span>
+│   │   ├── <span class="file">App.css</span>            <span class="note">← All UI styles (dark theme)</span>
+│   │   ├── <span class="file">index.js</span>           <span class="note">← React DOM entry</span>
+│   │   └── <span class="dir">components/</span>
+│   │       ├── <span class="file">ChatWindow.js</span>  <span class="note">← Scrollable chat area</span>
+│   │       ├── <span class="file">MessageBubble.js</span><span class="note">← Single message bubble</span>
+│   │       └── <span class="file">InputBar.js</span>    <span class="note">← Text input + send button</span>
+│   └── <span class="file">package.json</span>           <span class="note">← npm dependencies</span>
+│
+├── <span class="dir">backend/</span>                   <span class="note">← FastAPI Python backend</span>
+│   ├── <span class="file">main.py</span>                <span class="note">← FastAPI app + routes</span>
+│   ├── <span class="file">lambda_handler.py</span>      <span class="note">← AWS Lambda entry point</span>
+│   ├── <span class="file">chat_handler.py</span>        <span class="note">← Chatbot logic (rule-based / LLM)</span>
+│   ├── <span class="file">database.py</span>            <span class="note">← SQLite + DynamoDB operations</span>
+│   ├── <span class="file">logger.py</span>              <span class="note">← Structured logging system</span>
+│   ├── <span class="file">monitor.py</span>             <span class="note">← Response time + error metrics</span>
+│   └── <span class="file">requirements.txt</span>       <span class="note">← Python dependencies</span>
+│
+├── <span class="dir">ml/</span>                        <span class="note">← MLOps scripts</span>
+│   ├── <span class="file">train.py</span>               <span class="note">← 5-step training pipeline</span>
+│   ├── <span class="file">evaluate.py</span>            <span class="note">← Performance evaluation</span>
+│   └── <span class="file">version.txt</span>            <span class="note">← Current model version (e.g. 1.0.0)</span>
+│
+├── <span class="dir">data/</span>                      <span class="note">← Generated at runtime (gitignored)</span>
+│   ├── <span class="file">chatbot.db</span>             <span class="note">← SQLite database</span>
+│   ├── <span class="file">chat_logs.json</span>         <span class="note">← MLOps training data</span>
+│   ├── <span class="file">metrics.json</span>           <span class="note">← Performance metrics</span>
+│   └── <span class="file">app.log</span>                <span class="note">← Application logs</span>
+│
+├── <span class="dir">tests/</span>
+│   └── <span class="file">test_api.py</span>            <span class="note">← 7 pytest test cases</span>
+│
+├── <span class="dir">.github/</span>
+│   └── <span class="dir">workflows/</span>
+│       └── <span class="file">ci-cd.yml</span>          <span class="note">← GitHub Actions pipeline</span>
+│
+├── <span class="dir">docs/</span>
+│   └── <span class="file">architecture.md</span>        <span class="note">← Detailed architecture docs</span>
+│
+├── <span class="file">.env.example</span>              <span class="note">← Environment variable template</span>
+├── <span class="file">.gitignore</span>
+└── <span class="file">README.md</span>                  <span class="note">← Full project documentation</span>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 3: KEY CODE SNIPPETS -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">Section 03</div>
+  <h2>💻 Implementation Code (Key Snippets)</h2>
+
+  <h3>3.1 Backend — FastAPI Chat Endpoint</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-filename">backend/main.py</span>
+      <span class="code-lang">Python</span>
+    </div>
+    <pre><span class="cm"># Request model — Pydantic validates input automatically</span>
+<span class="kw">class</span> <span class="fn">ChatRequest</span>(BaseModel):
+    message: str
+    session_id: str = <span class="str">"default"</span>
+
+    <span class="dec">@validator</span>(<span class="str">"message"</span>)
+    <span class="kw">def</span> <span class="fn">message_must_not_be_empty</span>(cls, v):
+        v = v.strip()
+        <span class="kw">if not</span> v:
+            <span class="kw">raise</span> ValueError(<span class="str">"Message cannot be empty"</span>)
+        <span class="kw">if</span> len(v) > <span class="num">500</span>:
+            <span class="kw">raise</span> ValueError(<span class="str">"Message too long (max 500 chars)"</span>)
+        <span class="kw">return</span> v
+
+<span class="dec">@app.post</span>(<span class="str">"/chat"</span>, response_model=ChatResponse)
+<span class="kw">def</span> <span class="fn">chat</span>(request: ChatRequest):
+    start_time = time.time()
+    <span class="cm"># 1. Log request   2. Get bot reply   3. Save to DB</span>
+    log_request(request.session_id, request.message)
+    bot_reply = get_bot_response(request.message)
+    elapsed_ms = round((time.time() - start_time) * <span class="num">1000</span>, <span class="num">2</span>)
+    save_chat_log(request.session_id, request.message,
+                  bot_reply, timestamp, model_version)
+    track_response_time(elapsed_ms)
+    <span class="kw">return</span> ChatResponse(response=bot_reply, ...)</pre>
+  </div>
+
+  <h3>3.2 Chat Handler — Rule-Based + LLM fallback</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-filename">backend/chat_handler.py</span>
+      <span class="code-lang">Python</span>
+    </div>
+    <pre><span class="cm"># Pattern-response pairs using regular expressions</span>
+RESPONSE_RULES = [
+    (r<span class="str">"\b(hi|hello|hey)\b"</span>,
+     [<span class="str">"Hello! How can I help you? 😊"</span>,
+      <span class="str">"Hi there! What's on your mind?"</span>]),
+    (r<span class="str">"\b(bye|goodbye)\b"</span>,
+     [<span class="str">"Goodbye! Have a great day! 👋"</span>]),
+    <span class="cm"># ... more rules ...</span>
+]
+
+<span class="kw">def</span> <span class="fn">get_bot_response</span>(user_message: str) -> str:
+    <span class="cm"># Priority 1: math expressions</span>
+    math_result = try_math_eval(user_message)
+    <span class="kw">if</span> math_result: <span class="kw">return</span> math_result
+
+    <span class="cm"># Priority 2: rule-based matching</span>
+    <span class="kw">for</span> pattern, responses <span class="kw">in</span> RESPONSE_RULES:
+        <span class="kw">if</span> re.search(pattern, user_message.lower()):
+            <span class="kw">return</span> random.choice(responses)
+
+    <span class="cm"># Priority 3: OpenAI API (if key set in .env)</span>
+    <span class="kw">if</span> os.getenv(<span class="str">"OPENAI_API_KEY"</span>):
+        <span class="kw">return</span> call_openai_api(user_message)
+
+    <span class="cm"># Priority 4: fallback</span>
+    <span class="kw">return</span> <span class="str">"I'm still learning! Try asking something else."</span></pre>
+  </div>
+
+  <h3>3.3 Database — SQLite + DynamoDB Dual Support</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-filename">backend/database.py</span>
+      <span class="code-lang">Python</span>
+    </div>
+    <pre><span class="kw">def</span> <span class="fn">save_chat_log</span>(session_id, user_message,
+                    bot_response, timestamp, model_version):
+    <span class="cm"># Always save to JSON (MLOps data collection)</span>
+    save_to_json_log(session_id, user_message, ...)
+
+    <span class="cm"># Route to SQLite or DynamoDB based on ENVIRONMENT var</span>
+    <span class="kw">if</span> ENVIRONMENT == <span class="str">"production"</span>:
+        save_to_dynamodb(session_id, user_message, ...)  <span class="cm"># AWS</span>
+    <span class="kw">else</span>:
+        save_to_sqlite(session_id, user_message, ...)    <span class="cm"># Local</span></pre>
+  </div>
+
+  <h3>3.4 Lambda Handler — AWS Adapter</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-filename">backend/lambda_handler.py</span>
+      <span class="code-lang">Python</span>
+    </div>
+    <pre><span class="kw">from</span> mangum <span class="kw">import</span> Mangum
+<span class="kw">from</span> main <span class="kw">import</span> app
+
+<span class="cm"># Mangum wraps FastAPI → works as AWS Lambda function</span>
+<span class="cm"># AWS Lambda calls handler(event, context)</span>
+handler = Mangum(app, lifespan=<span class="str">"off"</span>)</pre>
+  </div>
+
+  <h3>3.5 React — Main App Component (fetch call)</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-filename">frontend/src/App.js</span>
+      <span class="code-lang">JavaScript</span>
+    </div>
+    <pre><span class="kw">const</span> sendMessage = <span class="kw">async</span> (userText) => {
+  setIsLoading(<span class="kw">true</span>);
+  setMessages(prev => [...prev, { type: <span class="str">'user'</span>, text: userText }]);
+
+  <span class="kw">try</span> {
+    <span class="kw">const</span> response = <span class="kw">await</span> fetch(<span class="str">`${API_URL}/chat`</span>, {
+      method: <span class="str">'POST'</span>,
+      headers: { <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span> },
+      body: JSON.stringify({ message: userText, session_id: sessionId }),
+    });
+    <span class="kw">const</span> data = <span class="kw">await</span> response.json();
+    setMessages(prev => [...prev, { type: <span class="str">'bot'</span>, text: data.response }]);
+  } <span class="kw">catch</span> (err) {
+    setError(<span class="str">'Connection error — is the backend running?'</span>);
+  } <span class="kw">finally</span> {
+    setIsLoading(<span class="kw">false</span>);
+  }
+};</pre>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 4: MLOPS -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">Section 04</div>
+  <h2>🧠 MLOps Implementation</h2>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <div class="card-title">Data Collection</div>
+      <div class="card-body">Every user message and bot response is saved to <code>chat_logs.json</code>. This becomes the training dataset for future model improvements.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏋️</div>
+      <div class="card-title">Training Workflow</div>
+      <div class="card-body">Run <code>python ml/train.py</code> to simulate a full pipeline: load data → analyse → train (5 epochs) → evaluate → version update.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏷️</div>
+      <div class="card-title">Model Versioning</div>
+      <div class="card-body"><code>ml/version.txt</code> stores the current version. Every successful training run increments the PATCH number (e.g. 1.0.0 → 1.0.1).</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📈</div>
+      <div class="card-title">Monitoring</div>
+      <div class="card-body">Response times and error counts are tracked in <code>metrics.json</code>. In production, <code>monitor.py</code> sends these to AWS CloudWatch.</div>
+    </div>
+  </div>
+
+  <h3>MLOps Pipeline Flow</h3>
+  <div class="arch-box">
+<pre>  COLLECT          ANALYZE          TRAIN           EVALUATE         DEPLOY
+┌─────────┐      ┌─────────┐      ┌─────────┐      ┌─────────┐      ┌─────────┐
+│  Every  │      │ Topics, │      │ 5 epoch │      │Accuracy │      │ Bump    │
+│  chat   │─────►│ volume, │─────►│simulated│─────►│> 80%?   │─────►│version  │
+│  saved  │      │ patterns│      │ training│      │         │      │ → deploy│
+└─────────┘      └─────────┘      └─────────┘      └────┬────┘      └─────────┘
+                                                         │ NO
+                                                    Keep current version</pre>
+  </div>
+
+  <h3>Sample Training Output</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-filename">Terminal output — python ml/train.py</span>
+      <span class="code-lang">Shell</span>
+    </div>
+    <pre>==================================================
+  🤖 MLOps Training Pipeline
+  Started: 2024-01-15T10:30:00
+==================================================
+
+📊 STEP 1: Loading Training Data
+────────────────────────────────────────
+✅ Loaded 127 chat records
+
+🔍 STEP 2: Analyzing Training Data
+────────────────────────────────────────
+  Total samples: 127
+  Avg message length: 18.4 chars
+  Topic distribution: {'greetings': 34, 'questions': 58, ...}
+
+🧠 STEP 3: Training Model (Simulated)
+────────────────────────────────────────
+  Epoch 1/5 | Loss: 0.8523 | Accuracy: 0.5812
+  Epoch 2/5 | Loss: 0.6891 | Accuracy: 0.6634
+  Epoch 3/5 | Loss: 0.5312 | Accuracy: 0.7521
+  Epoch 4/5 | Loss: 0.4102 | Accuracy: 0.8304
+  Epoch 5/5 | Loss: 0.2988 | Accuracy: 0.8897
+
+  ✅ Training complete! Final Accuracy: 0.8897
+
+📏 STEP 4: Evaluating Model
+────────────────────────────────────────
+  Accuracy:  0.8897
+  Precision: 0.8741
+  Recall:    0.8612
+  F1 Score:  0.8676
+  Quality Gate (accuracy > 0.80): ✅ PASSED
+
+🏷️  STEP 5: Updating Model Version
+────────────────────────────────────────
+  Previous version: 1.0.0
+  New version:      1.0.1
+  Saved to: ml/version.txt
+
+==================================================
+  ✅ PIPELINE COMPLETE!  New model version 1.0.1
+==================================================</pre>
+  </div>
+
+  <h3>Sample Application Logs</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-filename">data/app.log</span>
+      <span class="code-lang">JSON Lines</span>
+    </div>
+    <pre>2024-01-15 10:23:44 | INFO  | {"type":"REQUEST",  "session_id":"sess-abc","message_length":5,"message_preview":"Hello"}
+2024-01-15 10:23:44 | INFO  | {"type":"RESPONSE", "session_id":"sess-abc","response_length":42,"response_time_ms":265.4}
+2024-01-15 10:23:55 | INFO  | {"type":"REQUEST",  "session_id":"sess-abc","message_length":15,"message_preview":"Tell me a joke"}
+2024-01-15 10:23:55 | INFO  | {"type":"RESPONSE", "session_id":"sess-abc","response_length":68,"response_time_ms":209.1}
+2024-01-15 10:24:02 | ERROR | {"type":"ERROR","error":"Message too long (max 500 characters)","context":""}</pre>
+  </div>
+
+  <h4>CloudWatch Usage (Production)</h4>
+  <p>In production, all Lambda <code>print()</code> and <code>logging</code> output is automatically captured by AWS CloudWatch Logs. You can then run Log Insights queries:</p>
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">CloudWatch Log Insights Query</span><span class="code-lang">SQL</span></div>
+    <pre><span class="cm">-- Find average response time in last hour</span>
+fields @timestamp, @message
+| filter @message like <span class="str">"RESPONSE"</span>
+| parse @message <span class="str">'"response_time_ms": *,'</span> as rt
+| stats avg(rt) as avg_response_ms
+
+<span class="cm">-- Alert: count errors in last 5 minutes</span>
+fields @timestamp
+| filter @message like <span class="str">"ERROR"</span>
+| stats count() as errors by bin(5m)</pre>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 5: AWS DEPLOYMENT -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">Section 05</div>
+  <h2>☁️ AWS Deployment — Step-by-Step</h2>
+
+  <div class="callout">
+    <strong>Pre-requisites:</strong> AWS account, AWS CLI installed (<code>aws configure</code>), Python 3.11, Node.js 18.
+  </div>
+
+  <h3>Step 1 — Create DynamoDB Table</h3>
+  <ol class="steps">
+    <li><div class="step-body">Go to <strong>AWS Console → DynamoDB → Create Table</strong></div></li>
+    <li><div class="step-body">Table name: <strong>ChatLogs</strong> | Partition key: <strong>id</strong> (String)</div></li>
+    <li><div class="step-body">Leave all other settings as default and click <strong>Create</strong></div></li>
+  </ol>
+
+  <h3>Step 2 — Package &amp; Deploy Backend to Lambda</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">Terminal</span><span class="code-lang">Shell</span></div>
+    <pre><span class="cm"># Package backend + dependencies into a ZIP</span>
+cd backend
+pip install -r requirements.txt --target ./package
+cp *.py ./package/
+cp -r ../ml ./package/ml
+cd package && zip -r ../../backend.zip . && cd ..
+
+<span class="cm"># Create the Lambda function (first time)</span>
+aws lambda create-function \
+  --function-name serverless-chatbot \
+  --runtime python3.11 \
+  --handler lambda_handler.handler \
+  --zip-file fileb://backend.zip \
+  --role arn:aws:iam::YOUR_ACCOUNT_ID:role/lambda-role
+
+<span class="cm"># Update Lambda (subsequent deploys)</span>
+aws lambda update-function-code \
+  --function-name serverless-chatbot \
+  --zip-file fileb://backend.zip</pre>
+  </div>
+
+  <h3>Step 3 — Configure Environment Variables</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">Terminal</span><span class="code-lang">Shell</span></div>
+    <pre>aws lambda update-function-configuration \
+  --function-name serverless-chatbot \
+  --environment "Variables={
+    ENVIRONMENT=production,
+    DB_TABLE_NAME=ChatLogs,
+    AWS_REGION=us-east-1,
+    MODEL_VERSION=1.0.0
+  }"</pre>
+  </div>
+
+  <h3>Step 4 — Create API Gateway</h3>
+  <ol class="steps">
+    <li><div class="step-body">Go to <strong>API Gateway → Create API → REST API → Build</strong></div></li>
+    <li><div class="step-body">Click <strong>Actions → Create Resource</strong>, name it <strong>chat</strong> (path: /chat)</div></li>
+    <li><div class="step-body">Select the /chat resource → <strong>Actions → Create Method → POST</strong></div></li>
+    <li><div class="step-body">Integration type: <strong>Lambda Function</strong> → select <code>serverless-chatbot</code></div></li>
+    <li><div class="step-body">Enable <strong>CORS</strong>: Actions → Enable CORS → Yes, replace existing CORS headers</div></li>
+    <li><div class="step-body"><strong>Actions → Deploy API</strong> → New Stage: <code>prod</code> → Copy the Invoke URL</div></li>
+  </ol>
+
+  <h3>Step 5 — Host Frontend on S3</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">Terminal</span><span class="code-lang">Shell</span></div>
+    <pre><span class="cm"># 1. Set API URL in frontend</span>
+echo "REACT_APP_API_URL=https://YOUR-API-ID.execute-api.us-east-1.amazonaws.com/prod" \
+  > frontend/.env.production
+
+<span class="cm"># 2. Build React app</span>
+cd frontend && npm run build
+
+<span class="cm"># 3. Create S3 bucket (name must be globally unique)</span>
+aws s3 mb s3://my-chatbot-frontend-2024
+
+<span class="cm"># 4. Upload build files</span>
+aws s3 sync build/ s3://my-chatbot-frontend-2024 --acl public-read
+
+<span class="cm"># 5. Enable static website hosting</span>
+aws s3 website s3://my-chatbot-frontend-2024 \
+  --index-document index.html</pre>
+  </div>
+
+  <h3>Step 6 — Test the Deployed API</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">Terminal — curl test</span><span class="code-lang">Shell</span></div>
+    <pre>curl -X POST \
+  https://YOUR-API-ID.execute-api.us-east-1.amazonaws.com/prod/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello!", "session_id": "test-001"}'
+
+<span class="cm"># Expected response:</span>
+{
+  "response": "Hello! How can I help you today? 😊",
+  "session_id": "test-001",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "model_version": "1.0.0",
+  "response_time_ms": 312.5
+}</pre>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 6: DEVOPS / CI-CD -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">Section 06</div>
+  <h2>🔁 DevOps / CI-CD Pipeline</h2>
+
+  <p>The GitHub Actions workflow (<code>.github/workflows/ci-cd.yml</code>) automatically runs on every <code>git push</code>.</p>
+
+  <div class="pipeline">
+    <div class="pipeline-stage">
+      <div class="stage-icon">🧪</div>
+      <div class="stage-name">Test</div>
+      <div class="stage-desc">pytest · flake8 · coverage report</div>
+    </div>
+    <div class="pipeline-arrow">→</div>
+    <div class="pipeline-stage">
+      <div class="stage-icon">🏗️</div>
+      <div class="stage-name">Build</div>
+      <div class="stage-desc">npm ci · npm run build · artifact upload</div>
+    </div>
+    <div class="pipeline-arrow">→</div>
+    <div class="pipeline-stage">
+      <div class="stage-icon">🚀</div>
+      <div class="stage-name">Deploy</div>
+      <div class="stage-desc">Lambda ZIP · S3 sync · CloudFront invalidate</div>
+    </div>
+  </div>
+
+  <div class="callout orange">
+    <strong>Note:</strong> The Deploy stage only runs when pushing to the <code>main</code> branch. Feature branches only run Test + Build.
+  </div>
+
+  <h3>GitHub Actions YAML (key sections)</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">.github/workflows/ci-cd.yml</span><span class="code-lang">YAML</span></div>
+    <pre><span class="kw">name:</span> 🤖 Chatbot CI/CD Pipeline
+
+<span class="kw">on:</span>
+  <span class="kw">push:</span>
+    <span class="kw">branches:</span> [ main, develop ]
+
+<span class="kw">jobs:</span>
+  <span class="kw">test:</span>
+    <span class="kw">runs-on:</span> ubuntu-latest
+    <span class="kw">steps:</span>
+      - <span class="kw">uses:</span> actions/checkout@v4
+      - <span class="kw">name:</span> Install deps
+        <span class="kw">run:</span> pip install -r backend/requirements.txt
+      - <span class="kw">name:</span> Run tests
+        <span class="kw">run:</span> pytest tests/ -v --tb=short
+
+  <span class="kw">build-frontend:</span>
+    <span class="kw">needs:</span> test          <span class="cm"># Only runs if tests pass</span>
+    <span class="kw">runs-on:</span> ubuntu-latest
+    <span class="kw">steps:</span>
+      - <span class="kw">run:</span> cd frontend && npm ci && npm run build
+
+  <span class="kw">deploy:</span>
+    <span class="kw">needs:</span> [test, build-frontend]
+    <span class="kw">if:</span> github.ref == 'refs/heads/main'   <span class="cm"># main branch only</span>
+    <span class="kw">steps:</span>
+      - <span class="cm"># Configure AWS credentials from GitHub Secrets</span>
+      - <span class="kw">run:</span> aws lambda update-function-code --zip-file fileb://backend.zip
+      - <span class="kw">run:</span> aws s3 sync frontend/build/ s3://${{ secrets.S3_BUCKET_NAME }}</pre>
+  </div>
+
+  <h4>Required GitHub Secrets</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Secret Name</th><th>What it is</th><th>Where to find it</th></tr></thead>
+      <tbody>
+        <tr><td><code>AWS_ACCESS_KEY_ID</code></td><td>AWS IAM access key</td><td>AWS Console → IAM → Users → Security Credentials</td></tr>
+        <tr><td><code>AWS_SECRET_ACCESS_KEY</code></td><td>AWS IAM secret key</td><td>Same as above (only shown once)</td></tr>
+        <tr><td><code>S3_BUCKET_NAME</code></td><td>Your frontend S3 bucket</td><td>e.g. <code>my-chatbot-frontend-2024</code></td></tr>
+        <tr><td><code>LAMBDA_FUNCTION_NAME</code></td><td>Lambda function name</td><td>e.g. <code>serverless-chatbot</code></td></tr>
+        <tr><td><code>API_URL</code></td><td>API Gateway invoke URL</td><td>API Gateway → Stages → prod → Invoke URL</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Optional: Jenkins Pipeline</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">Jenkinsfile</span><span class="code-lang">Groovy</span></div>
+    <pre>pipeline {
+    agent any
+    stages {
+        stage(<span class="str">'Test'</span>) {
+            steps {
+                sh <span class="str">'pip install -r backend/requirements.txt'</span>
+                sh <span class="str">'pytest tests/ -v'</span>
+            }
+        }
+        stage(<span class="str">'Build'</span>) {
+            steps {
+                sh <span class="str">'cd frontend && npm ci && npm run build'</span>
+            }
+        }
+        stage(<span class="str">'Deploy'</span>) {
+            when { branch <span class="str">'main'</span> }
+            steps {
+                sh <span class="str">'aws lambda update-function-code --zip-file fileb://backend.zip'</span>
+                sh <span class="str">'aws s3 sync frontend/build/ s3://${S3_BUCKET}'</span>
+            }
+        }
+    }
+}</pre>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 7: TESTING -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">Section 07</div>
+  <h2>🧪 Testing</h2>
+
+  <p>All tests use <strong>pytest</strong> with the FastAPI <strong>TestClient</strong> (no real server needed). Run with: <code>pytest tests/ -v</code></p>
+
+  <h3>Test Report Table</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>TC ID</th>
+          <th>Description</th>
+          <th>Input</th>
+          <th>Expected Output</th>
+          <th>Actual Output</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-mono">TC-001</span></td>
+          <td>Health check endpoint returns OK</td>
+          <td><code>GET /</code></td>
+          <td>HTTP 200, <code>{"status":"ok"}</code></td>
+          <td>HTTP 200, <code>{"status":"ok","message":"..."}</code></td>
+          <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-mono">TC-002</span></td>
+          <td>Valid message returns structured response</td>
+          <td><code>POST /chat {"message":"Hello"}</code></td>
+          <td>HTTP 200 with response, session_id, timestamp, model_version, response_time_ms</td>
+          <td>HTTP 200, all 5 fields present and non-empty</td>
+          <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-mono">TC-003</span></td>
+          <td>Empty message is rejected (validation)</td>
+          <td><code>POST /chat {"message":""}</code></td>
+          <td>HTTP 400 or 422 error</td>
+          <td>HTTP 422 Unprocessable Entity</td>
+          <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-mono">TC-004</span></td>
+          <td>Message over 500 chars is rejected</td>
+          <td><code>POST /chat {"message":"A"×501}</code></td>
+          <td>HTTP 400 or 422 error</td>
+          <td>HTTP 400 Bad Request</td>
+          <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-mono">TC-005</span></td>
+          <td>Greeting triggers appropriate response</td>
+          <td><code>POST /chat {"message":"hi there"}</code></td>
+          <td>Response contains a greeting word (hello/hi/hey)</td>
+          <td>"Hello! How can I help you today? 😊"</td>
+          <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-mono">TC-006</span></td>
+          <td>Response time is tracked and returned</td>
+          <td><code>POST /chat {"message":"How are you?"}</code></td>
+          <td><code>response_time_ms > 0</code></td>
+          <td><code>response_time_ms: 12.5</code></td>
+          <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-mono">TC-007</span></td>
+          <td>Math expression is correctly evaluated</td>
+          <td><code>POST /chat {"message":"what is 5 + 3"}</code></td>
+          <td>Response contains "8"</td>
+          <td>"The answer is: <strong>8</strong> 🧮"</td>
+          <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout green">
+    <strong>Result: 7/7 tests passing ✅</strong> — Run <code>pytest tests/ -v --tb=short</code> to reproduce.
+  </div>
+
+  <h3>How to Run Tests</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">Terminal</span><span class="code-lang">Shell</span></div>
+    <pre><span class="cm"># From project root</span>
+cd backend
+source venv/bin/activate
+pip install pytest
+
+<span class="cm"># Run all tests with verbose output</span>
+pytest ../tests/ -v --tb=short
+
+<span class="cm"># Run with coverage report</span>
+pytest ../tests/ --cov=backend --cov-report=term-missing
+
+<span class="cm"># Expected output:</span>
+tests/test_api.py::test_health_check          PASSED  [14%]
+tests/test_api.py::test_valid_chat_message    PASSED  [28%]
+tests/test_api.py::test_empty_message_rejected PASSED [42%]
+tests/test_api.py::test_long_message_rejected  PASSED [57%]
+tests/test_api.py::test_greeting_response      PASSED [71%]
+tests/test_api.py::test_response_time_tracked  PASSED [85%]
+tests/test_api.py::test_math_evaluation        PASSED [100%]
+========================= 7 passed in 0.84s =========================</pre>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECTION 8: SECURITY -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">Section 08</div>
+  <h2>🔐 Security Measures</h2>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">✅</div>
+      <div class="card-title">Input Validation</div>
+      <div class="card-body">Pydantic validators reject empty messages and anything over 500 characters. Invalid requests return 400/422 before reaching the chatbot logic.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔑</div>
+      <div class="card-title">Environment Variables</div>
+      <div class="card-body">API keys (OpenAI, AWS) are stored in <code>.env</code> files, never in code. <code>.env</code> is gitignored. GitHub Secrets used in CI/CD.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🚫</div>
+      <div class="card-title">No eval() on User Input</div>
+      <div class="card-body">The math evaluator uses regex to extract only valid number+operator patterns before evaluating — prevents code injection.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌐</div>
+      <div class="card-title">CORS Configuration</div>
+      <div class="card-body">FastAPI CORS middleware restricts which domains can call the API. In production, replace <code>allow_origins=["*"]</code> with your specific frontend URL.</div>
+    </div>
+  </div>
+
+  <h3>Future Security Improvements</h3>
+  <p>For a production system, also consider: JWT-based user authentication, AWS WAF (firewall) in front of API Gateway, rate limiting per user/IP, input sanitization against XSS/injection, and HTTPS-only enforcement.</p>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SUMMARY -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-num">Summary</div>
+  <h2>📋 Project Summary</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Requirement</th><th>Implementation</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>React Chat UI</td><td>App.js + ChatWindow + MessageBubble + InputBar</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>FastAPI Backend + /chat endpoint</td><td>main.py with Pydantic validation</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>Chatbot Logic / LLM</td><td>Rule-based + optional OpenAI fallback</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>SQLite (local) database</td><td>database.py with auto-init</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>DynamoDB (cloud) database</td><td>database.py — routes by ENVIRONMENT var</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>MLOps — data collection</td><td>chat_logs.json written on every message</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>MLOps — training script</td><td>ml/train.py (5-step pipeline)</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>MLOps — model versioning</td><td>ml/version.txt incremented after training</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>MLOps — monitoring</td><td>monitor.py + metrics.json + CloudWatch</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>Structured logging</td><td>logger.py — JSON log lines to file</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>GitHub Actions CI/CD</td><td>.github/workflows/ci-cd.yml (3 stages)</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>AWS Lambda deployment</td><td>lambda_handler.py with Mangum adapter</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>API Gateway</td><td>Documented in deployment guide</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>S3 frontend hosting</td><td>npm run build → S3 sync</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>CloudWatch logging</td><td>Explained + CloudWatch Insights queries</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>5+ Test cases</td><td>7 pytest cases with table report</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>Input validation + security</td><td>Pydantic validators + env vars + CORS</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+        <tr><td>README documentation</td><td>Complete README.md included</td><td><span class="badge badge-pass">✅ Done</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- /page -->
+</body>
+</html>

@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.env
+*.egg-info/
+dist/
+build/
+
+# Data (don't commit sensitive chat logs)
+data/chatbot.db
+data/chat_logs.json
+data/metrics.json
+data/app.log
+data/training_report.json
+
+# Node / React
+frontend/node_modules/
+frontend/build/
+
+# AWS
+*.zip
+.aws/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
