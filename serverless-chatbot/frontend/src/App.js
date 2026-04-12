@@ -9,7 +9,7 @@ import InputBar from './components/InputBar';
 import './App.css';
 
 // API base URL — reads from environment variable or defaults to localhost
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_URL = process.env.REACT_APP_API_URL || 'http://13.63.158.78:8000';
 
 // Generate a random session ID to group messages in a conversation
 const generateSessionId = () => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
